@@ -1,8 +1,8 @@
 def compute_match_clock(milliseconds):
     seconds = milliseconds // 1000
-    minutes = str(seconds // 60)
-    seconds = str(seconds % 60)
-    clock = minutes + ":" + seconds
+    minutes = seconds // 60
+    seconds = seconds % 60
+    clock = f"{minutes:02d}:{seconds:02d}"
     return clock
 
 
