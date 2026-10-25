@@ -12,8 +12,6 @@ int main(int argc, char *argv[]){
     int speed = atoi(argv[1]);
     FILE *inputfile = fopen("event reading/results.txt", "r");
     char buffer[100];
-    char *milliseconds;
-    int milsec;
     int previous_milsec = 0;
     int current_milsec = 0;
     int sleep_time = 0;

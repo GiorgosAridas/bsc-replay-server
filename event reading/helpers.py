@@ -1,6 +1,8 @@
-def compute_match_clock(milliseconds):
+def compute_match_clock(milliseconds, period):
     seconds = milliseconds // 1000
     minutes = seconds // 60
+    if period == 2:
+        minutes = minutes + 45
     seconds = seconds % 60
     clock = f"{minutes:02d}:{seconds:02d}"
     return clock

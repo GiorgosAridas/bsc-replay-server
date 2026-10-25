@@ -1,12 +1,15 @@
 import json
+import sys
 from helpers import compute_match_clock, compute_milliseconds
 
-with open('../matches/3750234.json', 'r') as file:
+with open(sys.argv[1], 'r') as file:
     events = json.load(file)
+
+first_half_ended = 0
 
 for event in events:
     milliseconds = compute_milliseconds(event["timestamp"])
-    match_clock = compute_match_clock(milliseconds)
+    match_clock = compute_match_clock(milliseconds, event["period"])
     event_type = event["type"]["name"]
     location = event.get("location")
     if location:
@@ -15,6 +18,10 @@ for event in events:
     else:
         posx = ""
         posy = ""
+
+    if (event["period"] == 1 and event_type == "Half End"):
+        first_half_ended = milliseconds
+    
 
     if event_type == "Pass":
         recipient = event.get("pass", {}).get("recipient", {}).get("name", "")
@@ -32,5 +39,7 @@ for event in events:
         player = event.get("player", {})
         description = player.get("name", "")
 
-
-    print(milliseconds, "\t", match_clock, "\t", event_type, "\t", posx, "\t", posy, "\t", description)
+    if event["period"] == 2:
+        print(milliseconds + first_half_ended, "\t", match_clock, "\t", event_type, "\t", posx, "\t", posy, "\t", description)
+    else:
+        print(milliseconds, "\t", match_clock, "\t", event_type, "\t", posx, "\t", posy, "\t", description)
