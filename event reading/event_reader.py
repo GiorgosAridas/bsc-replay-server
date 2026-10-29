@@ -3,11 +3,11 @@ import sys
 from helpers import compute_match_clock, compute_milliseconds
 
 with open(sys.argv[1], 'r') as file:
-    events = json.load(file)
+    events = json.load(file)            #load json file and store its contets into a dictionary
 
 first_half_ended = 0
 
-for event in events:
+for event in events:                    #for each event occuring during the match we store its info in the event variable
     milliseconds = compute_milliseconds(event["timestamp"])
     match_clock = compute_match_clock(milliseconds, event["period"])
     event_type = event["type"]["name"]
@@ -19,8 +19,8 @@ for event in events:
         posx = ""
         posy = ""
 
-    if (event["period"] == 1 and event_type == "Half End"):
-        first_half_ended = milliseconds
+    if (event["period"] == 1 and event_type == "Half End"):     #first half ended store its duration
+        first_half_ended = milliseconds                         #in the variable
     
 
     if event_type == "Pass":
@@ -39,7 +39,7 @@ for event in events:
         player = event.get("player", {})
         description = player.get("name", "")
 
-    if event["period"] == 2:
+    if event["period"] == 2:            #if we are on the second half of a game add the milliseconds of the other half
         print(milliseconds + first_half_ended, "\t", match_clock, "\t", event_type, "\t", posx, "\t", posy, "\t", description)
     else:
         print(milliseconds, "\t", match_clock, "\t", event_type, "\t", posx, "\t", posy, "\t", description)
