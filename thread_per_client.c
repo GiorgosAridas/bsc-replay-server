@@ -8,8 +8,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "thread_per_client.h"
+#include "ui_colors.h"
 
 MatchData *matchdata;
+void *serve_client(void* arg);
+void *replayer_thread_function(void* arg);
 
 void perror_exit(char *message){
     perror(message);
@@ -18,7 +21,7 @@ void perror_exit(char *message){
 
 
 int main(int argc, char *argv[]){
-    int port, sock;
+    int port, sock, N, speed;
     struct sockaddr_in server, client;
     socklen_t clientlen;
 
@@ -26,14 +29,36 @@ int main(int argc, char *argv[]){
     struct sockaddr *clientptr = (struct sockaddr *)&client;
 
     struct hostent *rem;
-
-    if (argc != 3) perror_exit("Please give port number and number of clients\n");
         
-    
-    
-    port = atoi(argv[1]);
-    int N = atoi(argv[2]);
+    int opt;
+    while ((opt = getopt(argc, argv, "p:n:s:")) != -1){
+        switch (opt){
+            case 'p':
+                port = atoi(optarg);
+                break;
+            case 'n':
+                N = atoi(optarg);
+                break;
+            case 's':
+                speed = atoi(optarg);
+                break;
+            default:
+                printf(BOLD_RED "Correct use: %s [-p port] [-n clients] [-s speed]\n" COLOR_RESET, argv[0]);
+                return -1;
+        }
+    }
+    if (argc != 7){
+        printf(BOLD_RED "Correct use: %s [-h hostname] [-p port]\n" COLOR_RESET, argv[0]);
+        return -1;
+    }
+
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) perror_exit("socket");
+
+    opt = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        perror_exit("setsockopt SO_REUSEADDR");
+    }
+
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
     server.sin_port = htons(port);
@@ -50,13 +75,30 @@ int main(int argc, char *argv[]){
     //create a table with length N for the newsock vars and for the threads
     int *newsock = malloc(N*sizeof(int));
     pthread_t *client_threads = malloc(N*sizeof(pthread_t));
+    clientlen = sizeof(client);
 
     for(int i=0; i< N; i++){
         if ((newsock[i] = accept(sock, clientptr, &clientlen)) < 0) perror_exit("accept");
-        
+        printf(COLOR_GREEN "[+] New client connected %d\n", newsock[i]);
         pthread_create(&client_threads[i], NULL, serve_client, (void *)&newsock[i]);
-
     }
+    pthread_t replayer_thread;
+    printf(BOLD_CYAN "[*] All the clents are connected. Starting Match!\n");
+    pthread_create(&replayer_thread, NULL, replayer_thread_function, (void *)&speed);
+    pthread_join(replayer_thread, NULL);
+
+    for(int i=0; i< N; i++){
+        pthread_join(client_threads[i], NULL);
+    }
+
+    free(newsock);
+    free(client_threads);
+    pthread_mutex_destroy(&matchdata->mutex);
+    pthread_cond_destroy(&matchdata->new_event);
+    free(matchdata);
+    close(sock);
+
+    return 0;
 }
 
 
@@ -82,5 +124,38 @@ void *serve_client(void* arg){
     }
 
     close(sock);
+    return NULL;
+}
+
+void *replayer_thread_function(void* arg){
+    int speed = *(int *)arg;
+    FILE *inputfile = fopen("event reading/results.txt", "r");
+    char buffer[256];
+    int previous_milsec = 0;
+    int current_milsec = 0;
+    int sleep_time = 0;
+    if (inputfile != NULL){
+        while(fgets(buffer, sizeof(buffer), inputfile)){
+            sscanf(buffer, "%d", &current_milsec);
+            sleep_time = current_milsec - previous_milsec;
+            usleep(sleep_time*1000/speed);
+            //printf("%s", buffer);
+            pthread_mutex_lock(&matchdata->mutex);
+            strcpy(matchdata->events[matchdata->event_count], buffer);
+            matchdata->event_count++;
+            pthread_cond_broadcast(&matchdata->new_event);
+            pthread_mutex_unlock(&matchdata->mutex);
+            previous_milsec = current_milsec;
+        }
+        fclose(inputfile);
+        pthread_mutex_lock(&matchdata->mutex);
+        matchdata->match_finished = true;
+        pthread_cond_broadcast(&matchdata->new_event);
+        pthread_mutex_unlock(&matchdata->mutex);
+    }
+    else{
+        perror("Cant open file\n");
+    }
+
     return NULL;
 }
