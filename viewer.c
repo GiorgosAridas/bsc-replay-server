@@ -78,7 +78,8 @@ int main(int argc, char *argv[]){
             message2print[position] = '\0';
             //printf("%s", message2print);
             /*==============UI CODE===============*/
-            char *millisecs = strtok(message2print, "\t");
+            char *seq_num = strtok(message2print, "\t");
+            char *due_time = strtok(NULL, "\t");
             char *clock = strtok(NULL, "\t");
             char *event_type = strtok(NULL, "\t");
             char *x = strtok(NULL, "\t");
@@ -94,6 +95,7 @@ int main(int argc, char *argv[]){
                 else if (strstr(event_type, "Tackle")) color = COLOR_BLUE;
 
                 // 3. Τυπώνουμε μορφοποιημένα, συμπεριλαμβάνοντας τα X, Y
+                printf("%s) ", seq_num);
                 printf(BOLD_WHITE "[ %s ] " COLOR_RESET, clock);
                 printf("%s%-15s" COLOR_RESET, color, event_type);
                 
