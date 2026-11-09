@@ -17,4 +17,11 @@ typedef struct{
 
 extern MatchData *matchdata;
 
+typedef struct{                             //We store the info that the replay needs to upload the events into the MatchData struct
+    char target_file[64];                   //Where is the original file that has the parsed info from the jsons
+    int speed;                              //At what speed we replay the match
+} ReplayerInfo;
+
+extern ReplayerInfo *replayerinfo;
+
 #endif

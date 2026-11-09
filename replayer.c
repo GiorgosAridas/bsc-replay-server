@@ -8,7 +8,7 @@
 
 void *replayer_thread_function(void *arg) {
     // --- Variable initialiazation ---
-    int speed = *(int *)arg;    //The speed at which we replay the match
+    int speed = ((ReplayerInfo *)arg)->speed;   //The speed at which we replay the match
     int previous_milsec = 0;
     int current_milsec = 0;
     int sleep_time = 0;
@@ -20,9 +20,11 @@ void *replayer_thread_function(void *arg) {
     char buffer[1024];
     char new_buffer[1024];
     char *rest;
+    char *target_file;
+    target_file = ((ReplayerInfo *)arg)->target_file;
     
     struct timespec start_time;
-    FILE *inputfile = fopen("event reading/results.txt", "r");
+    FILE *inputfile = fopen(target_file, "r");
 
     // --- Time initialization ---
     clock_gettime(CLOCK_MONOTONIC, &start_time);

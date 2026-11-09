@@ -20,15 +20,32 @@ void perror_exit(char *message){
 }
 
 MatchData *matchdata;
+ReplayerInfo *replayerinfo;
 
 int main(int argc, char *argv[]) {
+
+    printf("⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+    printf("⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+    printf("⣿⡟⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⢻⣿\n");
+    printf("⣿⡇⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⢸⣿\n");
+    printf("⣿⡇⠸⠿⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⡇⢸⣿⣿⣿⣿⣿⣿⣿⣿⠿⠿⠿⠇⢸⣿\n");
+    printf("⣿⡇⢰⣶⣶⠀⣿⣿⣿⣿⣿⣿⣿⠛⠁⠈⠛⣿⣿⣿⣿⣿⣿⣿⠀⣶⣶⡆⢸⣿\n");
+    printf("⣿⡇⢸⣿⣿⠀⣿⣿⣿⣿⣿⣿⡇⠰⡇⢸⠆⢸⣿⣿⣿⣿⣿⣿⠀⣿⣿⡇⢸⣿\n");
+    printf("⣿⡇⠸⠿⠿⠀⣿⣿⣿⣿⣿⣿⣿⣤⡀⢀⣤⣿⣿⣿⣿⣿⣿⣿⠀⠿⠿⠇⢸⣿\n");
+    printf("⣿⡇⢰⣶⣶⣶⣿⣿⣿⣿⣿⣿⣿⣿⡇⢸⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣶⡆⢸⣿\n");
+    printf("⣿⡇⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⢸⣿\n");
+    printf("⣿⣧⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣼⣿\n");
+    printf("⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+    printf("⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n");
+    printf(COLOR_YELLOW "Waiting for clients...\n" COLOR_RESET);    
+
+
     // --- Variable Initialization ---
     int port;
     int sock;
     int N;
-    int speed;
     int opt;
-    
+
     int *newsock;
     pthread_t *client_threads;
     pthread_t replayer_thread;
@@ -39,8 +56,9 @@ int main(int argc, char *argv[]) {
     struct sockaddr *clientptr = (struct sockaddr *)&client;
     socklen_t clientlen;
 
+    replayerinfo = malloc(sizeof(ReplayerInfo));
     // --- Command Line Arguments ---
-    while ((opt = getopt(argc, argv, "p:n:s:")) != -1) {
+    while ((opt = getopt(argc, argv, "p:n:s:f:")) != -1) {
         switch (opt) {
             case 'p':
                 port = atoi(optarg);
@@ -49,7 +67,10 @@ int main(int argc, char *argv[]) {
                 N = atoi(optarg);
                 break;
             case 's':
-                speed = atoi(optarg);
+                replayerinfo->speed = atoi(optarg);
+                break;
+            case 'f':
+                strcpy(replayerinfo->target_file, optarg);
                 break;
             default:
                 printf(BOLD_RED "Correct use: %s [-p port] [-n clients] [-s speed]\n" COLOR_RESET, argv[0]);
@@ -57,7 +78,7 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    if (argc != 7) {
+    if (argc != 9) {
         printf(BOLD_RED "Correct use: %s [-p port] [-n clients] [-s speed]\n" COLOR_RESET, argv[0]);
         return -1;
     }
@@ -109,7 +130,7 @@ int main(int argc, char *argv[]) {
     
     // --- Replay Start ---
     printf(BOLD_CYAN "[*] All the clients are connected. Starting Match!\n" COLOR_RESET);
-    pthread_create(&replayer_thread, NULL, replayer_thread_function, (void *)&speed);
+    pthread_create(&replayer_thread, NULL, replayer_thread_function, (void *)replayerinfo);
     
     // Wait until the replayer has done its job 
     pthread_join(replayer_thread, NULL);
