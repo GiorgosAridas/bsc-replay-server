@@ -1,0 +1,29 @@
+How to run:
+
+1) Event Parsing from json
+    Access the event_reading file 
+        cd event_reading
+    Run the python script thats in the event_reader.py. Needs 1 argument which is the json file.
+        python3 event_reader.py ../matches/16010.json >> results.txt
+
+2) Run the thread per client server
+    Compile using make command
+    Run the server 
+        ./server -s [speed] -n [number of clients] -p [port] -f [parsed events file] (The position of the arguments doesn't matter)
+    Run the viewer
+        ./viewer -p [port] -h [hostname]
+
+3) Tests
+    Compile using make command
+    Run the server with one client and a big speed for the test to run in a short amount of time
+        ex ./server -s 10000 -n 1 -p [port] -f [parsed events file]
+    Run the test
+        make test
+
+4) Pitch view
+    Compile using make command
+    Run the server 
+        ./server -s [speed] -n [number of clients] -p [port] -f [parsed events file] (The position of the arguments doesn't matter)
+    Run the pitchview script
+        python3 pitchview.py [localhost] [port] (For now the arguments need this specific order)
+

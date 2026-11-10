@@ -12,3 +12,16 @@
 
 ## Next Steps
 * Starting Milestone 1
+
+## Milestone 2: Completed
+* Thread_per_client.c: Developed the first server that opens a new thread for every new client
+* viewer.c: The client process. Connects with the server through TCP sockets and takes the events of a  match
+* replayer.c: Change the non thread function that was previously implemented. The new functions sends the events to the shared memory
+* client_handler.c: The client threads. Every time a new event is uploaded by the replayer the thread wakes up and sends the event to the client through the socket
+
+## Current State
+* Milestone 2 fully implemented
+* One match has a bug that needs fixing
+
+## Next Steps
+* Starting Milestone 3
